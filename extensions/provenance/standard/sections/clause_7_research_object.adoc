@@ -1,0 +1,83 @@
+== Requirements Class "Research Object"
+
+[[research-object-overview]]
+=== Overview
+
+The link:https://www.researchobject.org/ro-crate/specification[Research Object Crate (RO-Crate)]
+is a lightweight approach to packaging research data with their metadata and provenance information.
+The RO-Crate specification defines a simple, structured way to describe research outputs, including datasets,
+software, and other digital artifacts, along with their associated metadata.
+
+This requirement expands upon the <<OAProc-1>> job results (i.e., `/jobs/{jobID}/results`) with content negotiation
+and definitions allowing the retrieval of a _Research Object_ bundle from a completed job, which simultaneously includes
+the job results and the <<rc_provenance>> details produced by the process execution.
+
+include::../requirements/requirements_class_research_object.adoc[]
+
+
+
+==== TODO / Open Questions
+
+
+RO-Crate:
+  - https://www.researchobject.org/ro-crate/specification/1.3/structure.html#ro-crate-metadata-document-ro-crate-metadatajson
+  - https://www.researchobject.org/ro-crate/specification/1.3/metadata.html (W3C, RDF and SPARQL refs)
+  - `@context: https://w3id.org/ro/crate/1.3/context`
+  - `application/ld+json; profile="<profiles>"`
+    where `<profiles>` is a space-separated list of JSON-LD profiles, which:
+      - SHOULD include `http://www.w3.org/ns/json-ld#flattened`, `http://www.w3.org/ns/json-ld#compacted`, `http://www.w3.org/ns/json-ld#expanded` (or a mix of them)
+        (see https://www.w3.org/ns/json-ld)
+      - SHALL include `https://w3id.org/ro/crate`
+      - SHOULD include "_workflow/processing_"-related profiles (such as to map with _OGC API - Processes_ and/or CWL)
+        - Process Run: https://w3id.org/ro/wfrun/process (Process Run, i.e.: a **Job**)
+        - Workflow Run: https://w3id.org/ro/wfrun/workflow (extends: https://about.workflowhub.eu/Workflow-RO-Crate/, including CWL and other Workflow engines)
+        - Provenance Run: https://w3id.org/ro/wfrun/provenance  (which is the <<rc_provenance>> responses)
+  - Recommend (or require?) PROV profiles: https://www.researchobject.org/ro-crate/specification/1.3/profiles.html
+    - https://by-covid.github.io/cpm-ro-crate/#CPMProvenanceFile
+    - https://www.researchobject.org/ro-crate/specification/1.3/profiles.html#profile-crate
+  - Recommend elements to describe the process:
+    - https://www.researchobject.org/ro-crate/specification/1.3/workflows.html
+  - Recommend elements to describe the job input/result values:
+    - https://www.researchobject.org/ro-crate/specification/1.3/data-entities.html
+    - https://www.researchobject.org/ro-crate/specification/1.3/data-entities.html#core-metadata-for-data-entities
+  - Recommend _Attached RO-Crate_ structure with use of URIs to job result (i.e., `/jobs/{jobID}/results/{outputID}[/{N}]`) as the `@id` of each RO-Crate data entity
+    - https://www.researchobject.org/ro-crate/specification/1.3/data-entities.html#web-based-data-entities
+    - https://www.researchobject.org/ro-crate/specification/1.3/data-entities.html#data-entities-in-an-attached-ro-crate-that-are-also-on-the-web
+
+What must be done:
+- Some kind of equivalent to https://bioschemas.org/profiles/ComputationalWorkflow/1.0-RELEASE
+  but for which `@type` is a OGC-specific "Process Type" with a `conformsTo` reference to the ontology (OGC RAINBOW) containing it
+  (e.g.: https://www.researchobject.org/ro-crate/specification/1.3/workflows.html#complying-with-bioschemas-computational-workflow-profile)
+
+Attached/Bundle variants:
+- JSON-LD + profiles: https://www.researchobject.org/ro-crate/specification/1.3/structure.html#attached-ro-crate-package
+- Packaged within a ZIP file, BagIt archive or OCFL structure (which embeds the RO-Crate JSON-LD metadata document)
+  - bundle formats: https://www.researchobject.org/ro-crate/specification/1.3/appendix/implementation-notes#combining-with-other-packaging-schemes
+    (all some variants of ZIP, though technically a multipart could work as well)
+    nested:
+    - BagIt: https://tools.ietf.org/html/rfc8493
+    - ELN: https://www.iana.org/assignments/media-types/application/vnd.eln+zip
+    - OCFL: https://ocfl.io/
+    - Archive: Named Files like Zenodo Deposit (https://help.zenodo.org/docs/deposit/)
+
+=> cross-ref W3C and structure (including embedded `./metadata/provenance/`)
+bundle endpoint (expand job outputs alt media-type) => data+prov details
+cross-ref PROV content ID of bundle
+https://www.researchobject.org/ro-crate/specification/1.3/provenance.html
+
+
+
+=== Endpoints
+
+==== Research Object
+
+The server that support the creation of a research object bundle for a job
+includes the job outputs and the provenance details of the process execution.
+
+===== Operation
+
+include::../requirements/research-object/REQ_get-op.adoc[]
+
+===== Response
+
+include::../requirements/research-object/REQ_response.adoc[]

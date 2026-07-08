@@ -1,0 +1,24 @@
+[[req_research-object_get-op]]
+[requirement]
+====
+[%metadata]
+identifier:: /req/research-object/ro-get-op
+
+[.component,class=conditions]
+--
+The parameter `{jobID}` resolves to a valid job as per <<OAProc-1,OGC API - Processes - Part 1: Core, Conformance Class 'Core'>>.
+--
+
+[.component,class=conditions]
+--
+The job reference (path: `/jobs/{jobID}`) for which the research object is requested
+has completed successfully (`status: successful`).
+--
+
+[.component,class=part]
+--
+For every created job, the server SHALL support the HTTP GET operation on path `/jobs/{jobID}/results`
+with content negotiation of media-type ``.
+--
+
+====

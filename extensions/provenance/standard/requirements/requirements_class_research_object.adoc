@@ -1,0 +1,13 @@
+[[rc_research-object]]
+[requirements_class]
+.Requirements Class 'Research Object'
+====
+[%metadata]
+identifier:: https://www.opengis.net/spec/ogcapi-processes-5/1.0/req/research-object
+obligation:: requirement
+subject:: Web API
+inherit:: <<OAProc-1,OGC API - Processes - Part 1: Core, Conformance Class 'Core'>>
+requirement:: /req/research-object/get-op
+requirement:: /req/research-object/response
+requirement:: /req/research-object/unsupported-format
+====
