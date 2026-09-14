@@ -60,13 +60,13 @@ The following example illustrates an execution unit where the executable code is
     "value": {
       "image": "mydocker/ndvi:latest",
       "bindings": {
-        "inputBinding": {
+        "inputBindings": {
           "inputImage": {
             "prefix": "inputsImages=",
             "inputSeparator": ","
           }
         },
-        "outputBinding": {
+        "outputBindings": {
           "outputImage": {
             "glob": "$(\"/outputs/ndvi_\" + inputs.inputImage.basename)"
           }
