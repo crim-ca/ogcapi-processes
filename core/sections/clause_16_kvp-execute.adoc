@@ -495,7 +495,7 @@ param1=[1,2,3],[6,7,8]
 ----
 ====
 
-[[sc_kvp_process_outputs]]
+[[sc_kvp-execute_process-outputs]]
 ===== Process outputs
 
 include::../requirements/kvp-execute/REQ_output.adoc[]

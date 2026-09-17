@@ -48,7 +48,7 @@ The OGC API - Processes Standard utilizes elements of the OGC API-Common Standar
 |<<sc_api_definition,API Definition>>| https://www.opengis.net/spec/ogcapi-common-1/1.0/req/landing-page
 |<<sc_conformance_classes,Declaration of Conformance Classes>>| https://www.opengis.net/spec/ogcapi-common-1/1.0/req/landing-page
 |<<req_oas30_oas-definition,OpenAPI 3.0>>| https://www.opengis.net/spec/ogcapi-common-1/2.0/req/oas30
-|<<sc_requirements_class_html,HTML>>| https://www.opengis.net/spec/ogcapi-common-1/2.0/req/html
+|<<sc_requirements-class-html,HTML>>| https://www.opengis.net/spec/ogcapi-common-1/2.0/req/html
 |===
 
 
@@ -483,7 +483,7 @@ include::../recommendations/core/PER_process-exception-process-gone.adoc[]
 
 This section describes the requirements for executing a process.
 
-Depending on the description of the <<sc_process_description,process>> and the <<sc_execution_mode,negotiated process execution mode>>, process execution may result in the creation of a <<sc_retrieve_job_results,job resource>>.
+Depending on the description of the <<sc_process_description,process>> and the <<sc_execution_mode,negotiated process execution mode>>, process execution may result in the creation of a <<sc_job-results,job resource>>.
 
 
 [[sc_process-execute_operation]]
@@ -579,7 +579,7 @@ an <<execute-request-body,execute request>> as show in the following example:
 
 The actual name of each input is its identifier as specified by the input's definition in the <<sc_process_description,process description>>.
 
-[[sc_process-execute_inputs_values]]
+[[sc_process-execute_inputs-values]]
 ====== Input values
 
 As shown in https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/openapi/schemas/processes-core/inlineOrRefValue.yaml[inlineOrRefValue.yaml], a process input value that is specified in-line in an <<execute-request-body,execute request>> can be:
@@ -1441,7 +1441,7 @@ include::../requirements/core/REQ_job-exception-no-such-job.adoc[]
 
 include::../recommendations/core/PER_process-exception-job-gone.adoc[]
 
-[[sc_retrieve_job_results]]
+[[sc_job-results]]
 === Retrieve job results
 
 [[sc_job-results_operation]]

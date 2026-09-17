@@ -30,6 +30,7 @@ Requirements integrated within version 2.0 of this OGC API - Processes Standard 
 
 All questions regarding this submission should be directed to the editor or the submitters:
 
+[[table_submitters]]
 .Table of submitters
 [%unnumbered]
 |===

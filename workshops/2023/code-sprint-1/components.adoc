@@ -4,7 +4,7 @@
 [[sc_servers]]
 === Servers
 
-[#table_implementation,reftext='{table-caption} {counter:table-num}']
+[#table_service-implementations,reftext='{table-caption} {counter:table-num}']
 .Service implementations
 [cols=",,",width="75%",options="header",align="center"]
 |===
@@ -50,7 +50,7 @@
 [[sc_clients_components]]
 === Clients
 
-[#table_implementation,reftext='{table-caption} {counter:table-num}']
+[#table_client-implementations,reftext='{table-caption} {counter:table-num}']
 .Client implementations
 [cols=",,",width="75%",options="header",align="center"]
 |===

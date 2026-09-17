@@ -3,6 +3,7 @@
 [[sc_revision-history]]
 == Revision history
 
+[[table_change-history]]
 [%unnumbered]
 [options="header"]
 |===

@@ -127,7 +127,7 @@ This clause started by introducing the concept of the _Data Class_ in relation t
 . In order for the _Data Class_ concept to be most effective a registry akin to that found at https://schema.org[Schema.org] would need to be created and maintained.  The https://defs.opengis.net/prez/[OGC Definitions Service] is likely the best place to define and manage _Data Class_ URIs.
 ====
 
-[[sc_data_access_APIs]]
+[[sc_data-access-apis]]
 ==== Data access APIs
 
 If a server supports <<rc_collection-input,collection input>> and/or <<rc_collection-output,collection output>>, the `dataAccessAPIs` parameters in the process description allows the server to indicate, on a per-input/output basis, which <<def_data-access-mechanism,OGC API data access mechanism(s)>> are supported for providing input values to the process or retrieving output values from the process.
@@ -412,7 +412,7 @@ See <<sc_data_classes>>.
 [[sc_process-description_data-access-apis]]
 ==== Data access APIs
 
-See <<sc_data_access_APIs>>.
+See <<sc_data-access-apis>>.
 
 [[sc_process-description_example]]
 === Example

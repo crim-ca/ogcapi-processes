@@ -41,8 +41,15 @@ from pathlib import Path
 # Matches an anchor label on its own line, e.g. "[[req_core_get-op]]".
 ANCHOR_RE = re.compile(r"^\[\[([^\]]+)\]\]\s*$")
 
+# Matches the shorthand block-attribute anchor syntax, e.g.
+# "[#table_implementation,reftext='...']" or "[#some-id]". This is an
+# alternate, equally valid way (besides "[[id]]") to assign an id to the
+# block that immediately follows.
+ANCHOR_ATTR_RE = re.compile(r"^\[#([^\],\s]+)(?:\s*,.*)?\]\s*$")
+
 # Matches a single-bracket attribute line, e.g. '[cols="3",options="header"]'
-# or '[%metadata]'. Deliberately excludes anchors (double brackets).
+# or '[%metadata]'. Deliberately excludes anchors (double brackets) and the
+# "[#id...]" shorthand anchor form.
 ATTRIBUTE_RE = re.compile(r"^\[[^\[\]].*\]\s*$")
 
 # Matches a block title line, e.g. ".Schema and Tests for the Job Status Info".
@@ -96,6 +103,10 @@ class Finding:
     label: str | None
     prefix_ok: bool
     note: str = ""
+    # Labels of the enclosing section headings (outermost first), used to
+    # restrict separator-consistency checks to genuine ancestors rather than
+    # any same-file label that happens to share a textual prefix.
+    ancestors: tuple[str, ...] = ()
 
 
 def find_preceding_anchor(lines: list[str], index: int) -> tuple[str | None, int | None]:
@@ -112,7 +123,13 @@ def find_preceding_anchor(lines: list[str], index: int) -> tuple[str | None, int
     j = index - 1
     while j >= 0:
         s = lines[j].strip()
-        if s == "" or ATTRIBUTE_RE.match(s) or TITLE_RE.match(s):
+        if s == "" or TITLE_RE.match(s):
+            j -= 1
+            continue
+        attr_anchor = ANCHOR_ATTR_RE.match(s)
+        if attr_anchor:
+            return attr_anchor.group(1), j + 1
+        if ATTRIBUTE_RE.match(s):
             j -= 1
             continue
         break
@@ -158,6 +175,13 @@ def check_file(path: str) -> list[Finding]:
     in_comment_block = False
     in_table = False
     def_context_level: int | None = None  # heading level of an open "Terms and definitions" clause
+    # Stack of (level, label) for enclosing section headings, used to derive
+    # each finding's true ancestor chain (as opposed to any same-file label
+    # that merely shares a textual prefix, e.g. unrelated sibling sections).
+    heading_stack: list[tuple[int, str | None]] = []
+
+    def current_ancestors() -> tuple[str, ...]:
+        return tuple(lbl for _level, lbl in heading_stack if lbl)
 
     for i, line in enumerate(lines):
         stripped = line.strip()
@@ -185,6 +209,7 @@ def check_file(path: str) -> list[Finding]:
                     name=name,
                     label=label,
                     prefix_ok=True,
+                    ancestors=current_ancestors(),
                 )
             )
             continue
@@ -204,6 +229,12 @@ def check_file(path: str) -> list[Finding]:
 
             label, _ = find_preceding_anchor(lines, i)
 
+            # Pop headings at the same or a deeper level: they are not
+            # ancestors of this heading.
+            while heading_stack and heading_stack[-1][0] >= level:
+                heading_stack.pop()
+            ancestors = current_ancestors()
+
             if def_context_level is not None:
                 # Glossary term entry nested under "Terms and definitions".
                 prefix_ok = label is not None and label.startswith(DEFINITION_PREFIX)
@@ -216,8 +247,10 @@ def check_file(path: str) -> list[Finding]:
                         label=label,
                         prefix_ok=prefix_ok,
                         note="" if prefix_ok else f"expected prefix '{DEFINITION_PREFIX}'",
+                        ancestors=ancestors,
                     )
                 )
+                heading_stack.append((level, label))
                 continue
 
             prefix_ok = True
@@ -237,8 +270,10 @@ def check_file(path: str) -> list[Finding]:
                     label=label,
                     prefix_ok=prefix_ok,
                     note=note,
+                    ancestors=ancestors,
                 )
             )
+            heading_stack.append((level, label))
             if TERMS_AND_DEFINITIONS_RE.match(title):
                 def_context_level = level
             continue
@@ -259,10 +294,12 @@ def check_file(path: str) -> list[Finding]:
                     label=label,
                     prefix_ok=prefix_ok,
                     note="" if prefix_ok else f"expected prefix '{prefix}'",
+                    ancestors=current_ancestors(),
                 )
             )
 
     check_separator_consistency(findings)
+    check_label_underscore_depth(findings)
     return findings
 
 
@@ -290,22 +327,31 @@ GENERIC_ATTRIBUTE_SUFFIXES = {
     "sequence-diagram",
 }
 
+# A label follows a "<prefix>_<name>_<sub>" shape: at most two underscores,
+# separating the prefix from the concept and the concept from a genuine
+# subconcept. Any further nesting/qualification within a segment must use
+# "-", not "_" (e.g. "sc_job-management_create-operation", not
+# "sc_job-management_create_operation"). This caps the underscore depth.
+MAX_LABEL_UNDERSCORES = 2
+
 
 def check_separator_consistency(findings: list[Finding]) -> None:
-    """Flag labels that extend another label already used in the same file
-    with a hyphen instead of an underscore.
+    """Flag labels that extend an ancestor section's label with a hyphen
+    instead of an underscore.
 
-    Within a single file, once a label such as ``sc_job-list`` is used, any
-    other label that reuses it as a root (e.g. ``sc_job-list-overview``) is
+    Within a single file, once a label such as ``sc_job-list`` is used on a
+    section, any label nested under it (e.g. ``sc_job-list-overview``) is
     expected to join the extra part with ``_`` (``sc_job-list_overview``):
     the underscore separates concepts/subsections, while hyphens are reserved
     for joining the words within a single concept. A hyphen immediately after
-    an existing full label is therefore an inconsistent continuation.
+    an ancestor's full label is therefore an inconsistent continuation.
+
+    Only genuine ancestors (enclosing section headings) are considered as
+    candidate roots -- a same-file label that merely shares a textual prefix
+    with an unrelated sibling or cousin section (e.g. "sc_openapi" and
+    "sc_openapi-3-0", two distinct sibling requirements classes) is not a
+    root/extension relationship and must not be flagged.
     """
-    labels = [
-        f.label for f in findings
-        if f.label and f.label.startswith(RECOGNIZED_LABEL_PREFIXES)
-    ]
 
     def is_exempt_suffix(suffix: str) -> bool:
         if _NUMERIC_SUFFIX_RE.match(suffix):
@@ -319,12 +365,20 @@ def check_separator_consistency(findings: list[Finding]) -> None:
     for f in findings:
         if not f.label or not f.prefix_ok:
             continue
+        labels = [
+            lbl for lbl in f.ancestors
+            if lbl.startswith(RECOGNIZED_LABEL_PREFIXES)
+        ]
         candidates = [
             lbl for lbl in labels
             if lbl != f.label
             and f.label.startswith(lbl)
             and f.label[len(lbl)] == "-"
             and not is_exempt_suffix(f.label[len(lbl) + 1:])
+            # If the root is already at the max underscore depth, joining
+            # with "_" would exceed it; "-" is then the required separator,
+            # not an inconsistency.
+            and lbl.count("_") < MAX_LABEL_UNDERSCORES
         ]
         if not candidates:
             continue
@@ -334,6 +388,32 @@ def check_separator_consistency(findings: list[Finding]) -> None:
         f.note = (
             f"inconsistent separator: extends existing label '{root}' with '-'; "
             f"use '_' instead (e.g. '{suggestion}')"
+        )
+
+
+def check_label_underscore_depth(findings: list[Finding]) -> None:
+    """Flag section/definition labels with more than
+    ``MAX_LABEL_UNDERSCORES`` underscores.
+
+    A label follows a "<prefix>_<name>_<sub>" shape: the underscore separates
+    the prefix from the concept, and the concept from a genuine subconcept.
+    Any further qualification must be joined with "-" instead of adding more
+    underscores.
+    """
+    for f in findings:
+        if not f.label or not f.prefix_ok:
+            continue
+        if f.kind not in ("section", "definition"):
+            continue
+        if f.label.count("_") <= MAX_LABEL_UNDERSCORES:
+            continue
+        prefix, rest = f.label.split("_", 1)
+        parts = rest.split("_")
+        suggestion = f"{prefix}_" + "_".join(parts[:MAX_LABEL_UNDERSCORES - 1]) + "_" + "-".join(parts[MAX_LABEL_UNDERSCORES - 1:])
+        f.prefix_ok = False
+        f.note = (
+            f"label has more than {MAX_LABEL_UNDERSCORES} underscores; "
+            f"join extra segments with '-' instead (e.g. '{suggestion}')"
         )
 
 
@@ -367,6 +447,11 @@ def main(argv: list[str]) -> int:
         help="Adoc file to check. May be given multiple times. "
         "If omitted, recursively check every .adoc file under DIR.",
     )
+    parser.add_argument(
+        "--only-errors",
+        action="store_true",
+        help="Only print FAIL rows (problems), omitting PASS rows from the report.",
+    )
     args = parser.parse_args(argv)
 
     if args.files:
@@ -387,25 +472,25 @@ def main(argv: list[str]) -> int:
 
     problems = [f for f in all_findings if f.label is None or not f.prefix_ok]
 
-    if not problems:
-        print(f"Checked {len(files)} .adoc file(s): all section headers, tables, and "
-              f"normative blocks have valid anchor labels.")
-        return 0
-
-    print("The following section headers, tables, and/or normative blocks are missing a "
-          "valid or correctly prefixed anchor label ([[label]]):\n")
+    print(f"Checked {len(files)} .adoc file(s), {len(all_findings)} section header(s), "
+          f"table(s), and normative block(s).\n")
 
     rows = []
-    for f in problems:
+    for f in all_findings:
+        passed = f.label is not None and f.prefix_ok
+        if args.only_errors and passed:
+            continue
+        status = "PASS" if passed else "FAIL"
         if f.label is None:
-            status = "MISSING"
+            label = "MISSING"
             note = ""
         else:
-            status = f"[[{f.label}]]"
+            label = f"[[{f.label}]]"
             note = f" -- {f.note}" if f.note else ""
-        rows.append((status, format_kind(f.kind), str(f.line), f.name[:40], f.file + note))
+        name = f.name if len(f.name) <= 40 else f.name[:37] + "..."
+        rows.append((status, label, format_kind(f.kind), str(f.line), name, f.file + note))
 
-    headers = ("Label", "Type", "Line", "Name", "File")
+    headers = ("Status", "Label", "Type", "Line", "Name", "File / Problem")
     widths = [
         max(len(headers[i]), max((len(row[i]) for row in rows), default=0))
         for i in range(len(headers) - 1)  # File column is left unpadded (last column)
@@ -422,6 +507,9 @@ def main(argv: list[str]) -> int:
         print(format_row(row))
 
     print(f"\n{len(problems)} problem(s) found across {len(files)} file(s).")
+
+    if not problems:
+        return 0
     return 1
 
 
