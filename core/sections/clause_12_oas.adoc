@@ -1,4 +1,4 @@
-[[sc_openapi-requirements-classes]]
+[[clause_oas]]
 == OpenAPI requirements classes 
 
 [[sc_openapi]]
@@ -29,7 +29,7 @@ include::../requirements/oas/REQ_completeness.adoc[]
 
 [NOTE]
 ====
-Servers that, for example, are access-controlled (see <<sc_security,Security>>), support web cache validation, CORS or that use HTTP redirection will make use of additional HTTP status codes beyond regular codes such as `200` for successful GET requests and `400`, `404` or `500` for error situations. See <<http_status_codes>>.
+Servers that, for example, are access-controlled (see <<sc_security,Security>>), support web cache validation, CORS or that use HTTP redirection will make use of additional HTTP status codes beyond regular codes such as `200` for successful GET requests and `400`, `404` or `500` for error situations. See <<sc_http-1-1_status-codes>>.
 
 Clients must be prepared to receive responses not documented in the OpenAPI definition. For example, additional errors can occur in the transport layer outside of the server.
 ====

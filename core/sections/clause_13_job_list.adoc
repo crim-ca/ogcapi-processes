@@ -1,7 +1,7 @@
-[[sc_job_list]]
+[[clause_job-list]]
 == Requirements Class "Job list"
 
-[[sc_job-list-overview]]
+[[sc_job-list_overview]]
 === Overview
 
 The Job list Requirements Class specifies the requirements for a request that retrieves a list of jobs from a Processes API endpoint.
@@ -9,7 +9,7 @@ The Job list Requirements Class specifies the requirements for a request that re
 include::../requirements/requirements_class_job-list.adoc[]
 
 
-[[sc_job-list-operation]]
+[[sc_job-list_operation]]
 === Operation
 
 [[sc_job-list]]
@@ -123,6 +123,6 @@ include::../examples/json/JobList.json[]
 [[sc_job-list_error-situations]]
 === Error situations
 
-See <<http_status_codes>> for general guidance.
+See <<sc_http-1-1_status-codes>> for general guidance.
 
 If the process with the specified identifier does not exist on the server, the status code of the response SHALL be `404` (see <<req_core_process-exception-no-such-process>>).

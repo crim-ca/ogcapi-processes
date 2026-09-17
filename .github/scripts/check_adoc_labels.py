@@ -84,6 +84,27 @@ SECTION_DISALLOWED_PREFIXES = {
     "sec_": "deprecated prefix 'sec_'; use a different, descriptive prefix (e.g. 'sc_')",
 }
 
+# Regular section headings must use the "sc_" prefix. Headings inside an
+# abstract-test/conformance-class annex are conventionally prefixed "ats_"
+# instead (enforced for internal consistency by
+# check_ats_class_prefix_consistency), so that prefix is accepted here too.
+SECTION_PREFIX = "sc_"
+SECTION_ALLOWED_PREFIXES = (SECTION_PREFIX, "ats_")
+
+# Exception: the very first (root) heading of a "clause_*.adoc" fragment file
+# is conventionally the clause's own top-level anchor and must use "clause_"
+# instead of "sc_" (a hard requirement for consistency across such files).
+# Every other heading further down in the same file still follows the normal
+# "sc_"/"ats_" rule. "clause_0_front_material.adoc" files are exempt (they are
+# narrative front matter without a normal root heading to label).
+CLAUSE_FILE_RE = re.compile(r"(?i)^clause_\d+_(?!front_material$).+$")
+CLAUSE_TOP_PREFIX = "clause_"
+
+
+def is_clause_fragment_file(path: str) -> bool:
+    stem = Path(path).stem
+    return bool(CLAUSE_FILE_RE.match(stem))
+
 # Heading title that opens a "Terms and definitions" clause; every deeper-level
 # heading nested under it (until a heading at the same or a shallower level is
 # reached) is a glossary term entry and must use the "def_" prefix.
@@ -179,6 +200,8 @@ def check_file(path: str) -> list[Finding]:
     # each finding's true ancestor chain (as opposed to any same-file label
     # that merely shares a textual prefix, e.g. unrelated sibling sections).
     heading_stack: list[tuple[int, str | None]] = []
+    is_clause_file = is_clause_fragment_file(path)
+    seen_top_heading = False
 
     def current_ancestors() -> tuple[str, ...]:
         return tuple(lbl for _level, lbl in heading_stack if lbl)
@@ -255,12 +278,22 @@ def check_file(path: str) -> list[Finding]:
 
             prefix_ok = True
             note = ""
+            is_top_heading = is_clause_file and not seen_top_heading
             if label is not None:
                 for bad_prefix, reason in SECTION_DISALLOWED_PREFIXES.items():
                     if label.startswith(bad_prefix):
                         prefix_ok = False
                         note = reason
                         break
+                else:
+                    if is_top_heading:
+                        if not label.startswith(CLAUSE_TOP_PREFIX):
+                            prefix_ok = False
+                            note = f"root heading of a 'clause_*.adoc' file must use prefix '{CLAUSE_TOP_PREFIX}'"
+                    elif not label.startswith(SECTION_ALLOWED_PREFIXES):
+                        prefix_ok = False
+                        note = f"expected prefix '{SECTION_PREFIX}'"
+            seen_top_heading = True
             findings.append(
                 Finding(
                     file=path,
@@ -300,6 +333,8 @@ def check_file(path: str) -> list[Finding]:
 
     check_separator_consistency(findings)
     check_label_underscore_depth(findings)
+    check_ats_class_prefix_consistency(findings)
+    check_clause_root_separator_consistency(findings)
     return findings
 
 
@@ -315,17 +350,6 @@ RECOGNIZED_LABEL_PREFIXES = ("sc_", "ats_", "def_") + tuple(
 # disambiguation convention, not a new concept extension; it must not be
 # flagged as an inconsistent "-" continuation.
 _NUMERIC_SUFFIX_RE = re.compile(r"^\d+$")
-
-# Generic descriptor words used for a subsection's own introductory/structural
-# content (e.g. "sc_collection-input_access-overview"). These describe the
-# established root itself rather than introducing a new concept/subsection,
-# so a hyphen before them is not an inconsistency, even though the root is a
-# real existing label.
-GENERIC_ATTRIBUTE_SUFFIXES = {
-    "overview", "operation", "response", "response-content", "request",
-    "request-body", "exceptions", "error-situations", "examples",
-    "sequence-diagram",
-}
 
 # A label follows a "<prefix>_<name>_<sub>" shape: at most two underscores,
 # separating the prefix from the concept and the concept from a genuine
@@ -354,13 +378,13 @@ def check_separator_consistency(findings: list[Finding]) -> None:
     """
 
     def is_exempt_suffix(suffix: str) -> bool:
-        if _NUMERIC_SUFFIX_RE.match(suffix):
-            return True
-        # Strip a trailing "-N" dedup ordinal before comparing, e.g.
-        # "overview-2" is still just the "overview" attribute.
-        m = re.match(r"^(.*)-(\d+)$", suffix)
-        base = m.group(1) if m else suffix
-        return base in GENERIC_ATTRIBUTE_SUFFIXES
+        # A trailing numeric-only suffix (e.g. "-2", "-3") is our own dedup
+        # disambiguation convention, not a new concept extension, and must
+        # not be flagged as an inconsistent "-" continuation. No other
+        # suffix (however generic-sounding, e.g. "overview"/"operation") is
+        # exempt: every extension of an established root must consistently
+        # use "_", up to the underscore depth cap.
+        return bool(_NUMERIC_SUFFIX_RE.match(suffix))
 
     for f in findings:
         if not f.label or not f.prefix_ok:
@@ -417,6 +441,157 @@ def check_label_underscore_depth(findings: list[Finding]) -> None:
         )
 
 
+def check_ats_class_prefix_consistency(findings: list[Finding]) -> None:
+    """Flag section-heading labels prefixed with ``ats_`` that do not share
+    the conformance class' own root prefix.
+
+    A conformance class fragment file typically labels its
+    ``[conformance_class]`` block once (e.g. ``ats_dru``) and then organizes
+    its included abstract tests under several ``====`` headings (e.g.
+    "Deploy operation", "Undeploy operation"). Those grouping headings are
+    themselves siblings of the class root and are not picked up as
+    ancestor-extensions by ``check_separator_consistency`` (they don't
+    textually start with the class root at all when the qualifier is simply
+    missing). Since they live in the same file as their conformance class,
+    they must consistently reuse its root as a prefix.
+    """
+    class_roots = [
+        f.label for f in findings
+        if f.kind == "conformance_class" and f.label and f.label.startswith("ats_")
+    ]
+    if not class_roots:
+        return
+    # A single fragment file is expected to define at most one conformance
+    # class; use the first one found as the shared root for the file.
+    root = class_roots[0]
+
+    for f in findings:
+        if f.kind != "section" or not f.label or not f.prefix_ok:
+            continue
+        if not f.label.startswith("ats_"):
+            continue
+        if f.label == root or f.label.startswith(f"{root}_"):
+            continue
+        suggestion = f"{root}_{f.label[len('ats_'):]}"
+        f.prefix_ok = False
+        f.note = (
+            f"inconsistent 'ats_' label: does not share the conformance class "
+            f"root '{root}' used in this file; expected '{suggestion}'"
+        )
+
+
+def check_clause_root_separator_consistency(findings: list[Finding]) -> None:
+    """Flag ``sc_`` section labels that hyphen-extend the file's own
+    ``clause_<name>`` root instead of joining it with ``_``.
+
+    The root heading of a "clause_*.adoc" fragment file is labelled
+    ``clause_<name>`` (see ``CLAUSE_TOP_PREFIX``), while every other heading
+    in that same file must use ``sc_``. Because the two labels use different
+    prefixes, ``check_separator_consistency`` never treats ``clause_<name>``
+    as an extensible ancestor for ``sc_<name>...`` siblings, even though they
+    share the same underlying concept (e.g. "docker" in ``clause_docker`` /
+    ``sc_docker-schema``). This check reuses that concept name as a virtual
+    "sc_<name>" root and applies the same hyphen-vs-underscore rule against
+    it for every section label in the file that textually extends it.
+    """
+
+    def is_exempt_suffix(suffix: str) -> bool:
+        # Only our own numeric dedup ordinal ("-2", "-3") is exempt; no
+        # other suffix (e.g. "overview", "operation") gets a free pass.
+        return bool(_NUMERIC_SUFFIX_RE.match(suffix))
+
+    root_label = next(
+        (
+            f.label for f in findings
+            if f.kind == "section" and f.label and f.label.startswith(CLAUSE_TOP_PREFIX)
+        ),
+        None,
+    )
+    if root_label is None:
+        return
+
+    virtual_root = SECTION_PREFIX + root_label[len(CLAUSE_TOP_PREFIX):]
+    if virtual_root.count("_") >= MAX_LABEL_UNDERSCORES:
+        # Already at the underscore cap: a further "-" extension is the
+        # required separator, not an inconsistency.
+        return
+
+    for f in findings:
+        if f.kind != "section" or not f.label or not f.prefix_ok:
+            continue
+        if f.label == virtual_root or not f.label.startswith(virtual_root):
+            continue
+        if f.label[len(virtual_root)] != "-":
+            continue
+        suffix = f.label[len(virtual_root) + 1:]
+        if is_exempt_suffix(suffix):
+            continue
+        # Redistribute the suffix's own segments so the suggestion never
+        # exceeds the underscore cap: as many leading segments as still fit
+        # under the cap are joined with "_", the rest with "-".
+        available = MAX_LABEL_UNDERSCORES - virtual_root.count("_")
+        segments = suffix.split("_")
+        head = "_".join(segments[:available])
+        tail = segments[available:]
+        suggestion = f"{virtual_root}_{head}"
+        if tail:
+            suggestion += "-" + "-".join(tail)
+        f.prefix_ok = False
+        f.note = (
+            f"inconsistent separator: extends this file's own clause concept "
+            f"'{virtual_root}' with '-'; use '_' instead (e.g. '{suggestion}')"
+        )
+
+
+def document_group_for(path: str) -> str:
+    """Return the document/build-unit an ``.adoc`` file belongs to.
+
+    Anchor labels only need to be unique within the document they end up
+    compiled into. Each OGC API - Processes "Part" (the core specification,
+    or each extension) is built as an independent standalone document from
+    its own set of ``include::`` chains, so a label reused in two different
+    Parts is not a real conflict. Files that are not part of one of those
+    known multi-file builds (e.g. standalone workshop pages, which are never
+    ``include::``d anywhere) are not combined with anything else, so each
+    such file is treated as its own group.
+    """
+    norm = path.replace("\\", "/").lstrip("./")
+    parts = norm.split("/")
+    if parts[0] == "core":
+        return "core"
+    if parts[0] == "extensions" and len(parts) > 1:
+        return f"extensions/{parts[1]}"
+    return norm
+
+
+def check_duplicate_labels(all_findings: list[Finding]) -> None:
+    """Flag anchor labels reused more than once within the same document
+    group.
+
+    A duplicate id is invalid once the group's files are compiled together
+    (both anchors would resolve to the same id, and only one -- typically
+    the first, or neither reliably -- survives), regardless of whether each
+    individual label is otherwise correctly formatted.
+    """
+    by_group_label: dict[tuple[str, str], list[Finding]] = {}
+    for f in all_findings:
+        if not f.label:
+            continue
+        by_group_label.setdefault((document_group_for(f.file), f.label), []).append(f)
+
+    for (_group, label), group_findings in by_group_label.items():
+        if len(group_findings) <= 1:
+            continue
+        for f in group_findings:
+            others = [g for g in group_findings if g is not f]
+            locations = ", ".join(f"{g.file}:{g.line}" for g in others[:3])
+            if len(others) > 3:
+                locations += f", and {len(others) - 3} more"
+            dup_note = f"duplicate label '{label}' also used at {locations}"
+            f.prefix_ok = False
+            f.note = f"{f.note}; {dup_note}" if f.note else dup_note
+
+
 def format_kind(kind: str) -> str:
     if kind == "section":
         return "Section"
@@ -469,6 +644,7 @@ def main(argv: list[str]) -> int:
     all_findings: list[Finding] = []
     for path in files:
         all_findings.extend(check_file(path))
+    check_duplicate_labels(all_findings)
 
     problems = [f for f in all_findings if f.label is None or not f.prefix_ok]
 

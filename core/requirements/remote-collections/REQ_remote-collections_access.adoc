@@ -16,7 +16,7 @@ The server SHALL support accessing <<def_remote-collections,remote collections>>
 
 [.component,class=part]
 --
-The server SHALL, in the <<sc_process-description,process description>> and for each relevant input, indicate which <<def_data-access-mechanism, OGC data access API(s)>> can be used to retrieved input values for that input from the <<def_local-collection,collection>>.
+The server SHALL, in the <<clause_process-description,process description>> and for each relevant input, indicate which <<def_data-access-mechanism, OGC data access API(s)>> can be used to retrieved input values for that input from the <<def_local-collection,collection>>.
 --
 
 ====

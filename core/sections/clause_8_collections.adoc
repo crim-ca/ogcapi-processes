@@ -1,4 +1,4 @@
-[[sc_collections]]
+[[clause_collections]]
 == Collections
 
 [[sc_collection-input]]

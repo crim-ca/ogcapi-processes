@@ -1,11 +1,11 @@
 
-[[sc_process-description]]
+[[clause_process-description]]
 == Requirements Class "OGC Process Description"
 
 The following section describes the `OGC Process Description` Requirements Class.
 
 
-[[sc_process-description-overview]]
+[[sc_process-description_overview]]
 === Overview
 
 include::../requirements/requirements_class_ogc-process-description.adoc[]
@@ -31,7 +31,7 @@ The process description support specifying the following information:
 The following clause defines a JSON-encoding of the OGC process description.
 
 
-[[sc_process-description_response]]
+[[sc_process-description_json-encoding]]
 === OGC process description
 
 include::../requirements/ogc-process-description/REQ_json-encoding.adoc[]
@@ -136,7 +136,7 @@ include::../requirements/ogc-process-description/REQ_data-access-apis.adoc[]
 
 include::../recommendations/ogc-process-description/PER_extend-data-access-apis-values.adoc[]
 
-[[sc-input-schema]]
+[[sc_process-description_input-schema]]
 ==== Schema
 
 include::../requirements/ogc-process-description/REQ_input-def.adoc[]

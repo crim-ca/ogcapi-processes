@@ -35,6 +35,7 @@ Sample execute request for `RenderMap` process.
 
 Just basic tests returning JSON.
 
+[[table_test-report]]
 [cols="40e,20m,20s,20s",width="75%",options="header",align="center"]
 |===
 |Resource |Access URL |Result |Notes

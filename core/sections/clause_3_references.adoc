@@ -1,5 +1,5 @@
 
-[[sc_references]]
+[[clause_references]]
 [bibliography]
 == References
 

@@ -1,5 +1,5 @@
 
-[[overview]]
+[[clause_overview]]
 == Overview
 
 [[sc_web-processing-service]]
@@ -28,8 +28,8 @@ The following table provides a summary of the resources and HTTP methods specifi
 [cols=",,,,",options="header"]
 |===
 |Resource description |Path |HTTP method |Parameter |Document reference
-|Landing page |`/` |GET |N/A |<<sc_landing_page>>
-|Conformance classes |`/conformance` |GET |N/A |<<sc_conformance_classes>>
+|Landing page |`/` |GET |N/A |<<sc_landing-page>>
+|Conformance classes |`/conformance` |GET |N/A |<<sc_conformance-classes>>
 |Lists all available processes offered by the server|`/processes` |GET |N/A |<<sc_process_list>>
 |Provides detailed matadata about a specific process |`/processes/{processID}` |GET |processID (in path)|<<sc_process_description>>
 |The endpoint used to trigger execution of a process |`/processes/{processID}/execution` |POST |processID (in path), Execute request (contained in body) |<<sc_process-execute>>

@@ -1,5 +1,5 @@
 
-[[sc_encodings]]
+[[clause_encodings]]
 == Requirements classes for encodings
 
 [[sc_overview]]

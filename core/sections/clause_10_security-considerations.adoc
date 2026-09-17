@@ -1,5 +1,5 @@
 
-[[sc_security_considerations]]
+[[clause_security-considerations]]
 == Security Considerations
 
 The OGC API - Processes Standard makes use of different HTTP methods, namely GET, POST and DELETE. (Note that future extensions could introduce additional HTTP methods.)

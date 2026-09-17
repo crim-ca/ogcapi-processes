@@ -1,5 +1,5 @@
 
-[[sc_requirements-class-kvp-execute]]
+[[clause_kvp-execute]]
 == Requirements Class "KVP-encoded Execute"
 
 
@@ -187,7 +187,7 @@ A Boolean:
 booleanInput=true
 ----
 
-[[kvp-complex-value-input]]
+[[sc_kvp-execute_complex-value-input]]
 ====== Complex-valued input
 
 A complex value is a value whose structure is defined using a schema.  The schema of a complex process input value is defined in the <<sc_process_description,process description>> and can be specified using <<process-input-schema,JSON-Schema>>.  
@@ -211,7 +211,7 @@ Decoded value is:
 ----
 ====
 
-[[kvp-array-value-input]]
+[[sc_kvp-execute_array-value-input]]
 ====== Array-valued input
 
 include::../requirements/kvp-execute/REQ_array-input-value.adoc[]
@@ -410,7 +410,7 @@ imageInput[value]=VBORw0KGgoAAAANSUhEUgAABvwAAAa4CAYAAABMB35kAAABhGlDQ1BJQ0MgcHJ
 ----
 ====
 
-[[kvp-bbox-value]]
+[[sc_kvp-execute_bbox-value]]
 ====== Bounding box-valued input 
 
 include::../requirements/kvp-execute/REQ_bbox-input-value.adoc[]
@@ -436,7 +436,7 @@ my_bbox=43.570691463538644,-79.63732855116733,43.86582298161152,-79.102272790767
 
 ====
 
-[[kvp-value-by-ref]]
+[[sc_kvp-execute_value-by-ref]]
 ====== Input parameters value by reference
 
 include::../requirements/kvp-execute/REQ_input-by-reference.adoc[]
@@ -449,7 +449,7 @@ imageInput[href]=https://www.someserver.com/image.tiff&imageInput[type]=image/ti
 ----
 ====
 
-[[kvp-input-cardinality]]
+[[sc_kvp-execute_input-cardinality]]
 ===== Input cardinality
 
 include::../requirements/kvp-execute/REQ_input-cardinality.adoc[]

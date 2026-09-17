@@ -1,4 +1,4 @@
-[[sc_conformance]]
+[[clause_conformance]]
 == Conformance
 
 This Standard defines sixteen requirements / conformance classes.
