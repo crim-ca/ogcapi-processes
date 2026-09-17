@@ -1,4 +1,5 @@
 
+[[sc_references]]
 [bibliography]
 == References
 

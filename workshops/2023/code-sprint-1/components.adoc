@@ -1,5 +1,7 @@
+[[sc_components]]
 == Components
 
+[[sc_servers]]
 === Servers
 
 [#table_implementation,reftext='{table-caption} {counter:table-num}']
@@ -45,6 +47,7 @@
 | TBA
 |===
 
+[[sc_clients_components]]
 === Clients
 
 [#table_implementation,reftext='{table-caption} {counter:table-num}']

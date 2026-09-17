@@ -1,6 +1,8 @@
 
+[[sc_encodings]]
 == Requirements classes for encodings
 
+[[sc_overview]]
 === Overview
 
 This clause specifies two pre-defined requirements classes for request and response message encodings to be used by implementations of the Processes API. The two classes are:

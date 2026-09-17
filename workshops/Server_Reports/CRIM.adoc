@@ -1,15 +1,19 @@
+[[sc_crim-server-report]]
 == CRIM server report
 
+[[sc_server-base-url]]
 === Server base URL
 
 https://ogc-ades.crim.ca/ADES/
 
+[[sc_execute-request]]
 === Execute request
 
 [source,json]
 ====
 ====
 
+[[sc_test-report]]
 === Test report
 
 Just basic tests returning JSON.

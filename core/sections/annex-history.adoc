@@ -1,5 +1,6 @@
 
 [appendix,obligation=informative]
+[[sc_revision-history]]
 == Revision history
 
 [%unnumbered]
