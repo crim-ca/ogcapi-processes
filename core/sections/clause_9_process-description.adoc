@@ -244,7 +244,7 @@ The cardinality on an input is specified using the `minOccurs` and `maxOccurs` p
 
 [[cardinality_rules]]
 .Cardinality rules for process inputs.
-[cols=",,,",options="header"]
+[cols="10,10,40,40",options="header"]
 |===
 |minOccurs |maxOccurs |Interpretation |Example
 |0 |0 |Not Allowed |
