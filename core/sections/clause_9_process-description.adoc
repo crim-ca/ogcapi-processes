@@ -398,15 +398,9 @@ NOTE: This schema can also be obtained from https://raw.githubusercontent.com/op
 
 (see also: https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/openapi/schemas/processes-core/descriptionType.yaml[`descriptionType.yaml`]).
 
-==== Profile parameter
-
-See <<sc_process-description_profile>>.
-
 ==== Data classes parameter
 
 See <<sc_data_classes>>.
-
-include::../recommendations/ogc-process-description/REC_output-data-classes.adoc[]
 
 ==== Data access APIs
 
