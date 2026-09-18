@@ -1,4 +1,4 @@
-[[section_deployable_workflows]]
+[[sc_deployable-workflows]]
 == Deployable Workflows Conformance Class
 
 === Requirement Class _Deployable Workflows_

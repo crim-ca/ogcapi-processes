@@ -482,6 +482,13 @@ include::../requirements/core/REQ_process-execute-request.adoc[]
 include::../../openapi/schemas/processes-core/execute.yaml[]
 ----
 
+[[execute-request-body]]
+.Schema for execute base parameters
+[source,yaml]
+----
+include::../../openapi/schemas/processes-core/executeBase.yaml[]
+----
+
 NOTE: This schema can also be obtained from https://raw.githubusercontent.com/opengeospatial/ogcapi-processes/master/openapi/schemas/processes-core/execute.yaml[`execute.yaml`].
 
 [[inline-or-ref-value]]
@@ -755,7 +762,7 @@ In this second example, the property `geometryInput` has a cardinality of greate
 
 and an instance of this process input in an <<execute-request-body,execute request>> might be:
 
-[source]
+[source,json]
 ----
 
 "geometryInputs": [
@@ -1615,6 +1622,33 @@ Host: processing.example.org
 include::../examples/json/Result.json[]
 ----
 ====
+
+==== Data Class
+
+include::../recommendations/core/REC_job-results-data-classes.adoc[]
+
+Using `dataClasses` when providing results with known semantic profiling definitions can help further constrain the data or simply help machine-readable interpretation of expected data contents.
+
+In the below example, a STAC Item indicates the `dataClasses` to assert that it provides a named entity, classified pixel coverage and categorical details. Obviously, STAC itself is already verbose and this detail could seem redundant. However, if the raster was directly requested through content negotiation, the corresponding semantic details would be encoded in the file, or maybe missing entirely. Interpreting the results would require opening the file, parsing metadata or guessing the values based on limited context. The `dataClasses` allows reflecting that these properties are available regardless of format.
+
+.Example of a profiled result with data classes by value
+====
+[source,json]
+----
+include::../examples/json/ResultDataClasses.json[]
+----
+====
+
+Similarly, a link reference can employ `dataClasses` such that the remote contents can already be partially interpreted without accessing and parsing it.
+
+.Example of a profiled result with data classes by reference
+====
+[source,json]
+----
+include::../examples/json/ResultDataClassesLink.json[]
+----
+====
+
 
 ==== Error situations
 
